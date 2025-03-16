@@ -1,0 +1,13 @@
+---
+Description: "SSM Parameter"
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  Parameter1:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: "/demo/parameter1"
+      Type: "String"
+      Value: "Hello world!"
+      Tags:
+        Name: DemoParameter1
