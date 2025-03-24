@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: ec2-vpc.json
+parameters:
+  VPCName: MyVPCFromJSON
+  VPCCidrBlock: 10.255.240.0/21

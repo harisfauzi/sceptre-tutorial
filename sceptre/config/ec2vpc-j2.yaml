@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: ec2-vpc.yaml.j2
+sceptre_user_data:
+  vpc_name: MyVPCFromJinja2
+  cidr_block: 10.255.224.0/21

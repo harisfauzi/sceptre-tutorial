@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: ec2-vpc.py
+sceptre_user_data:
+  vpc_name: MyVPCFromTroposphere
+  cidr_block: 10.255.232.0/21
