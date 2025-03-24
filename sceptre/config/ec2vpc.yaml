@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: ec2-vpc.yaml
+parameters:
+  VPCName: MyUpdatedVPCAgain
+  VPCCidrBlock: 10.255.248.0/21

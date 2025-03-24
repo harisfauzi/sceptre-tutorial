@@ -1,0 +1,22 @@
+---
+Description: "SSM Parameter"
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VPCCidrBlock:
+    Type: String
+    Description: CIDR Block for the VPC
+  VPCName:
+    Type: String
+    Description: Name of the VPC
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Ref VPCName
