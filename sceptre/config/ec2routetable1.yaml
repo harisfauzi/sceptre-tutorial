@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: ec2-routetable.yaml
+parameters:
+  VPCId: !stack_output ec2vpc.yaml::MyVPC
+  RouteTableName: MyRouteTable

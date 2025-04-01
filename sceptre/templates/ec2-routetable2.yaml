@@ -1,0 +1,21 @@
+---
+Description: EC2 Route Table Demo
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VPCExportName:
+    Type: String
+    Description: Export name of the VPC stack
+  RouteTableName:
+    Type: String
+    Description: Name of the route table
+Resources:
+  MyVPC:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Fn::ImportValue:
+          Ref: VPCExportName
+      Tags:
+        - Key: Name
+          Value: !Ref RouteTableName

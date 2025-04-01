@@ -20,3 +20,9 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref VPCName
+Outputs:
+  MyVPC:
+    Description: VPC Id
+    Value: !Ref MyVPC
+    Export:
+      Name: !Sub "${AWS::StackName}-MyVPC"

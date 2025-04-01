@@ -1,0 +1,9 @@
+---
+template:
+  type: file
+  path: ec2-routetable2.yaml
+dependencies:
+  - ec2vpc.yaml
+parameters:
+  RouteTableName: MyRouteTable
+  VPCExportName: sceptretutorial-ec2vpc-MyVPC

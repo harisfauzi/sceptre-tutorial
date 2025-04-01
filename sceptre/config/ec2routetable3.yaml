@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: ec2-routetable.yaml
+parameters:
+  VPCId: !aws_vpc CLI-VPC
+  RouteTableName: MyRouteTable
