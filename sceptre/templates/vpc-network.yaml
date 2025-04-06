@@ -1,0 +1,431 @@
+---
+Description: EC2 VPC Network Demo
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  VPCCidrBlock:
+    Type: String
+    Description: CIDR Block for the VPC
+  VPCName:
+    Type: String
+    Description: Name of the VPC
+Resources:
+  TheVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      EnableDnsHostnames: True
+      EnableDnsSupport: True
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Ref VPCName
+  TheInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-igw"
+  TheVPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref TheVPC
+      InternetGatewayId: !Ref TheInternetGateway
+  TheRouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-public-rt"
+  TheRouteTablePublicDefaultRoute:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref TheRouteTablePublic
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref TheInternetGateway
+  TheRouteTablePrivateA:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-private-rt-a"
+  TheRouteTablePrivateB:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-private-rt-b"
+  TheNetworkACLPublic:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-public-nacl"
+  TheNetworkACLPublicIngress10000:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+      NetworkAclId: !Ref TheNetworkACLPublic
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 10000
+  TheNetworkACLPublicEgress10000:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+      NetworkAclId: !Ref TheNetworkACLPublic
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 10000
+  TheNetworkACLPrivate:
+    Type: AWS::EC2::NetworkAcl
+    Properties:
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-private-nacl"
+  TheNetworkACLPrivateIngress10000:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+      NetworkAclId: !Ref TheNetworkACLPrivate
+      Protocol: 6 # TCP
+      RuleAction: allow
+      RuleNumber: 10000
+      PortRange:
+        From: 1024
+        To: 65535
+  TheNetworkACLPrivateIngress10010:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: false
+      NetworkAclId: !Ref TheNetworkACLPrivate
+      Protocol: 17 # UDP
+      RuleAction: allow
+      RuleNumber: 10010
+      PortRange:
+        From: 1024
+        To: 65535
+  TheNetworkACLPrivateEgress10000:
+    Type: AWS::EC2::NetworkAclEntry
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: true
+      NetworkAclId: !Ref TheNetworkACLPrivate
+      Protocol: -1
+      RuleAction: allow
+      RuleNumber: 10000
+  TheSubnetPublicA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 0
+          - Fn::Cidr:
+              - Ref: VPCCidrBlock
+              - 8
+              - 8
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-public-a"
+        - Key: NetworkACL
+          Value: !Ref TheNetworkACLPublic
+  TheSubnetPublicAAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TheRouteTablePublic
+      SubnetId: !Ref TheSubnetPublicA
+  TheSubnetPublicB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 1
+          - Fn::Cidr:
+              - Ref: VPCCidrBlock
+              - 8
+              - 8
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-public-b"
+        - Key: NetworkACL
+          Value: !Ref TheNetworkACLPublic
+  TheSubnetPublicBAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TheRouteTablePublic
+      SubnetId: !Ref TheSubnetPublicB
+  TheSubnePrivateA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 2
+          - Fn::Cidr:
+              - Ref: VPCCidrBlock
+              - 8
+              - 8
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-private-a"
+        - Key: NetworkACL
+          Value: !Ref TheNetworkACLPrivate
+  TheSubnetPrivateARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TheRouteTablePrivateA
+      SubnetId: !Ref TheSubnePrivateA
+  TheSubnetPrivateANetworkACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref TheNetworkACLPrivate
+      SubnetId: !Ref TheSubnePrivateA
+  TheSubnePrivateB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs:
+              Ref: AWS::Region
+      CidrBlock:
+        Fn::Select:
+          - 3
+          - Fn::Cidr:
+              - Ref: VPCCidrBlock
+              - 8
+              - 8
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref TheVPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${VPCName}-private-b"
+        - Key: NetworkACL
+          Value: !Ref TheNetworkACLPrivate
+  TheSubnetPrivateBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref TheRouteTablePrivateB
+      SubnetId: !Ref TheSubnePrivateB
+  TheSubnetPrivateBNetworkACLAssociation:
+    Type: AWS::EC2::SubnetNetworkAclAssociation
+    Properties:
+      NetworkAclId: !Ref TheNetworkACLPrivate
+      SubnetId: !Ref TheSubnePrivateB
+
+Outputs:
+  TheVPC:
+    Description: VPC Id
+    Value: !Ref TheVPC
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheVPC
+  TheVPCCidrBlock:
+    Description: VPC CIDR Block
+    Value: !Ref VPCCidrBlock
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheVPCCidrBlock
+  TheRouteTablePublic:
+    Description: Public Route Table Id
+    Value: !Ref TheRouteTablePublic
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheRouteTablePublic
+  TheRouteTablePrivateA:
+    Description: Private Route Table A Id
+    Value: !Ref TheRouteTablePrivateA
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheRouteTablePrivateA
+  TheRouteTablePrivateB:
+    Description: Private Route Table B Id
+    Value: !Ref TheRouteTablePrivateB
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheRouteTablePrivateB
+  TheNetworkACLPublic:
+    Description: Public Network ACL Id
+    Value: !Ref TheNetworkACLPublic
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheNetworkACLPublic
+  TheNetworkACLPrivate:
+    Description: Private Network ACL Id
+    Value: !Ref TheNetworkACLPrivate
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheNetworkACLPrivate
+  TheSubnetPublicA:
+    Description: Public Subnet A Id
+    Value: !Ref TheSubnetPublicA
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicA
+  TheSubnetPublicAAvailabilityZone:
+    Description: Public Subnet A Availability Zone
+    Value:
+      Fn::GetAtt:
+        - TheSubnetPublicA
+        - AvailabilityZone
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicA-AvailabilityZone
+  TheSubnetPublicAAvailabilityZoneId:
+    Description: Public Subnet A Availability Zone Id
+    Value:
+      Fn::GetAtt:
+        - TheSubnetPublicA
+        - AvailabilityZoneId
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicA-AvailabilityZoneId
+  TheSubnetPublicACidrBlock:
+    Description: Public Subnet A CIDR Block
+    Value:
+      Fn::GetAtt:
+        - TheSubnetPublicA
+        - CidrBlock
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicA-CidrBlock
+  TheSubnetPublicB:
+    Description: Public Subnet B Id
+    Value: !Ref TheSubnetPublicB
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicB
+  TheSubnetPublicBAvailabilityZone:
+    Description: Public Subnet B Availability Zone
+    Value:
+      Fn::GetAtt:
+        - TheSubnetPublicB
+        - AvailabilityZone
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicB-AvailabilityZone
+  TheSubnetPublicBAvailabilityZoneId:
+    Description: Public Subnet B Availability Zone Id
+    Value:
+      Fn::GetAtt:
+        - TheSubnetPublicB
+        - AvailabilityZoneId
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicB-AvailabilityZoneId
+  TheSubnetPublicBCidrBlock:
+    Description: Public Subnet B CIDR Block
+    Value:
+      Fn::GetAtt:
+        - TheSubnetPublicB
+        - CidrBlock
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPublicB-CidrBlock
+  TheSubnetPrivateA:
+    Description: Private Subnet A Id
+    Value: !Ref TheSubnePrivateA
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateA
+  TheSubnetPrivateAAvailabilityZone:
+    Description: Private Subnet A Availability Zone
+    Value:
+      Fn::GetAtt:
+        - TheSubnePrivateA
+        - AvailabilityZone
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateA-AvailabilityZone
+  TheSubnetPrivateAAvailabilityZoneId:
+    Description: Private Subnet A Availability Zone Id
+    Value:
+      Fn::GetAtt:
+        - TheSubnePrivateA
+        - AvailabilityZoneId
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateA-AvailabilityZoneId
+  TheSubnetPrivateACidrBlock:
+    Description: Private Subnet A CIDR Block
+    Value:
+      Fn::GetAtt:
+        - TheSubnePrivateA
+        - CidrBlock
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateA-CidrBlock
+  TheSubnetPrivateB:
+    Description: Private Subnet B Id
+    Value: !Ref TheSubnePrivateB
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateB
+  TheSubnetPrivateBAvailabilityZone:
+    Description: Private Subnet B Availability Zone
+    Value:
+      Fn::GetAtt:
+        - TheSubnePrivateB
+        - AvailabilityZone
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateB-AvailabilityZone
+  TheSubnetPrivateBAvailabilityZoneId:
+    Description: Private Subnet B Availability Zone Id
+    Value:
+      Fn::GetAtt:
+        - TheSubnePrivateB
+        - AvailabilityZoneId
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateB-AvailabilityZoneId
+  TheSubnetPrivateBCidrBlock:
+    Description: Private Subnet B CIDR Block
+    Value:
+      Fn::GetAtt:
+        - TheSubnePrivateB
+        - CidrBlock
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheSubnetPrivateB-CidrBlock
+  TheInternetGateway:
+    Description: Internet Gateway Id
+    Value: !Ref TheInternetGateway
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheInternetGateway
+  TheVPCGatewayAttachment:
+    Description: VPC Gateway Attachment Id
+    Value: !Ref TheVPCGatewayAttachment
+    Export:
+      Name:
+        !Sub ${AWS::StackName}-TheVPCGatewayAttachment

@@ -1,0 +1,5 @@
+---
+aws_region: us-west-2
+aws_account_id: "747750219604"
+aws_role_name: FAODeployerRole
+vpc_cidr_block: 10.255.240.0/21

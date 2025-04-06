@@ -2,6 +2,21 @@
 template:
   type: file
   path: ec2-vpc.yaml
+hooks:
+  before_create:
+    - !cmd echo "Before create hook"
+  after_create:
+    - !cmd echo "After create hook"
+    - !stack_termination_protection enabled
+  before_update:
+    - !cmd echo "Before update hook"
+  after_update:
+    - !cmd echo "After update hook"
+  before_delete:
+    - !cmd echo "Before delete hook"
+    - !stack_termination_protection disabled
+  after_delete:
+    - !cmd echo "After delete hook"
 parameters:
-  VPCName: MyUpdatedVPCAgain
-  VPCCidrBlock: 10.255.248.0/21
+  VPCName: MyVPC
+  VPCCidrBlock: "{{var.vpc_cidr_block | default('10.255.248.0/21')}}"
