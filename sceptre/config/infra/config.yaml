@@ -1,0 +1,5 @@
+---
+pwd: infra
+cfn_path: infra
+# sceptre_role: arn:aws:iam::747750219604:role/FAODeployerRole
+sceptre_role: arn:aws:iam::{{var.aws_account_id|default('000000000000')}}:role/{{var.aws_role_name|default('None')}}

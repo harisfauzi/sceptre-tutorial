@@ -25,4 +25,5 @@ Outputs:
     Description: VPC Id
     Value: !Ref MyVPC
     Export:
-      Name: !Sub "${AWS::StackName}-MyVPC"
+      Name:
+        Fn::Sub: ${AWS::StackName}-MyVPC

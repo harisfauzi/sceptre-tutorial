@@ -5,7 +5,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Parameters:
   VPCExportName:
     Type: String
-    Description: Export name of the VPC stack
+    Description: Export name of the VPC
   RouteTableName:
     Type: String
     Description: Name of the route table

@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: vpc-network.yaml
+parameters:
+  VPCName: MyVPC
+  VPCCidrBlock: 10.255.240.0/21

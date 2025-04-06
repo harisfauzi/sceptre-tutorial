@@ -1,0 +1,7 @@
+---
+template:
+  type: file
+  path: vpc-network.yaml
+parameters:
+  VPCName: MyVPC
+  VPCCidrBlock: "{{var.vpc_cidr_block | default('10.255.248.0/21')}}"

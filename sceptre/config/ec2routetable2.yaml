@@ -6,4 +6,4 @@ dependencies:
   - ec2vpc.yaml
 parameters:
   RouteTableName: MyRouteTable
-  VPCExportName: sceptretutorial-ec2vpc-MyVPC
+  VPCExportName: MyVPCExport
