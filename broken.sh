@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-function hell() {
-  echo "Hello, world!"
+function hello() {
+  local name="$1"
+  echo "Hello, $name!"
 }
 
-echo "Hello, world!"
+hello "$@"

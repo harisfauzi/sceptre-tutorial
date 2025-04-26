@@ -12,6 +12,7 @@ yarn add --dev eslint \
   eslint-plugin-prettier \
   eslint-plugin-promise \
   eslint-plugin-json \
+  @typescript-eslint/eslint-plugin \
   lint-staged \
   husky \
   prettier \
